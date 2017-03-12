@@ -10,12 +10,12 @@ let userSchema = new Schema({
     unique: true
   },
   skills: [{
-    skillName: {
+    name: {
       type: String,
       require: true,
       unique: true
     },
-    score: String
+    score: Number
   }]
 }, {
   timestamps: true
