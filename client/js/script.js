@@ -1,135 +1,161 @@
 $(document).ready(function () {
-  getData()
-  complete()
+  $('.modal').modal()
+  getUsers()
 })
 
-function getData () {
+function getUsers () {
   $.ajax({
-    url: 'http://localhost:3000/api/todos',
+    url: 'http://localhost:3000/api/users',
     type: 'GET',
     success: function (data) {
       data.forEach(function (data) {
-        if (data.complete === false) {
-          $('#uncomplete').prepend(`
-            <div id="uncomplete-${data._id}" class="col s6">
-              <div class="card blue-grey darken-1">
-                <div class="card-content white-text">
-                  <span class="card-title">${data.title}</span>
-                  <p>${data.content}</p>
-                </div>
-                <div class="card-action">
-                  <a href="#" onclick="complete('${data._id}')">Complete</a>
-                  <a href="#" onclick="remove('${data._id}')">Delete</a>
-                </div>
+        $('#peoples').prepend(`
+          <div id="${data.username}" class="col s3">
+            <div class="card">
+              <div class="card-content" onclick="getSkills('${data.username}')">
+                <span class="card-title activator grey-text text-darken-4">${data.username}<i class="material-icons right">more_vert</i></span>
+              </div>
+              <div class="card-reveal">
+                <span class="card-title grey-text text-darken-4">${data.username} Skills<i class="material-icons right">close</i></span>
+                <table class="responsive-table highlight">
+                  <thead>
+                    <tr>
+                      <th data-field="skill">Skill</th>
+                      <th data-field="score">Score</th>
+                      <th data-field="remove">Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody id="${data.username}-skill">
+
+                  </tbody>
+                </table>
+                <a href="#modal-skill" class="btn-floating btn-large waves-effect waves-light green right tooltipped" data-position="left" data-delay="50" data-tooltip="Add Skill"><i class="material-icons">add</i></a>
+              </div>
+              <div class="card-action">
+                <a href="#" onclick="deleteUser('${data.username}')">Delete User</a>
               </div>
             </div>
-          `)
-        } else {
-          $('#complete').prepend(`
-            <div id='complete-${data._id}' class="col s6">
-              <div class="card blue-grey lighten-2">
-                <div class="card-content white-text">
-                  <span class="card-title">${data.title}</span>
-                  <p>${data.content}</p>
-                </div>
-                <div class="card-action">
-                  <a href="#" onclick="uncomplete('${data._id}')">Uncomplete</a>
-                  <a href="#" onclick="remove('${data._id}')">Delete</a>
-                </div>
-              </div>
-            </div>
-          `)
-        }
+          </div>
+        `)
+        $('#modal-skill').append(`
+          <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat" onclick="addSkill('${data.username}')">Submit</a>
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Cancel</a>
+          </div>
+        `)
       })
     }
   })
 }
 
-function addTodo () {
+function getSkills (username) {
   $.ajax({
-    url: 'http://localhost:3000/api/todo',
+    url: `http://localhost:3000/api/${username}/skills`,
+    type: 'GET',
+    success: function (data) {
+      $(`#${username}-skill`).empty()
+      data.forEach(function (skill) {
+        $(`#${username}-skill`).prepend(`
+          <tr id="${username}-${skill.name}">
+            <td>${skill.name}</td>
+            <td>${skill.score}</td>
+            <td><a onclick="removeSkill('${username}','${skill.name}')" class="waves-effect waves-light btn red"><i class="material-icons center"><i class="material-icons">delete_forever</i></i></a></td>
+          </tr>
+        `)
+      })
+    }
+  })
+}
+
+function addUser () {
+  $.ajax({
+    url: 'http://localhost:3000/api/user',
     type: 'POST',
     data: {
-      title: $('#title').val(),
-      content: $('#content').val()
+      username: $('#username').val()
+      // photo: 'img/' + $('#photo').val()
     },
     success: function (data) {
-      $('#title').val('')
-      $('#content').val('')
-      $('#uncomplete').prepend(`
-        <div id="uncomplete-${data._id}" class="col s6">
-          <div class="card blue-grey darken-1">
-            <div class="card-content white-text">
-              <span class="card-title">${data.title}</span>
-              <p>${data.content}</p>
+      $('#peoples').prepend(`
+        <div id="${data.username}" class="col s3">
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title activator grey-text text-darken-4">${data.username}<i class="material-icons right">more_vert</i></span>
+              <p><a href="#">Skills</a></p>
+            </div>
+            <div class="card-reveal">
+              <span class="card-title grey-text text-darken-4">${data.username} Skills<i class="material-icons right">close</i></span>
+              <table class="responsive-table highlight">
+                <thead>
+                  <tr>
+                    <th data-field="skill">Skill</th>
+                    <th data-field="score">Score</th>
+                    <th data-field="remove">Remove</th>
+                  </tr>
+                </thead>
+                <tbody id="${data.username}-skill">
+
+                </tbody>
+              </table>
+              <a href="#modal-skill" class="btn-floating btn-large waves-effect waves-light green right tooltipped" data-position="left" data-delay="50" data-tooltip="Add Skill"><i class="material-icons">add</i></a>
             </div>
             <div class="card-action">
-              <a href="#" onclick="complete('${data._id}')">Complete</a>
-              <a href="#" onclick="remove('${data._id}')">Delete</a>
+              <a href="#" onclick="deleteUser('${data.username}')">Delete User</a>
             </div>
           </div>
+        </div>
+      `)
+      $('#modal-skill').append(`
+        <div class="modal-footer">
+          <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat" onclick="addSkill('${data.username}')">Submit</a>
+          <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Cancel</a>
         </div>
       `)
     }
   })
 }
 
-function complete (id) {
+function deleteUser (username) {
   $.ajax({
-    url: `http://localhost:3000/api/todo/${id}/complete`,
-    type: 'PUT',
-    success: function (data) {
-      $(`#uncomplete-${id}`).remove()
-      $('#complete').append(`
-        <div id='complete-${data._id}' class="col s6">
-          <div class="card blue-grey lighten-2">
-            <div class="card-content white-text">
-              <span class="card-title">${data.title}</span>
-              <p>${data.content}</p>
-            </div>
-            <div class="card-action">
-              <a href="#" onclick="uncomplete('${data._id}')">Uncomplete</a>
-              <a href="#" onclick="remove('${data._id}')">Delete</a>
-            </div>
-          </div>
-        </div>
-      `)
-    }
-  })
-}
-
-function uncomplete (id) {
-  $.ajax({
-    url: `http://localhost:3000/api/todo/${id}/uncomplete`,
-    type: 'PUT',
-    success: function (data) {
-      $(`#complete-${id}`).remove()
-      $('#uncomplete').prepend(`
-        <div id='uncomplete-${data._id}' class="col s6">
-          <div class="card blue-grey darken-1">
-            <div class="card-content white-text">
-              <span class="card-title">${data.title}</span>
-              <p>${data.content}</p>
-            </div>
-            <div class="card-action">
-              <a href="#" onclick="complete('${data._id}')">complete</a>
-              <a href="#" onclick="remove('${data._id}')">Delete</a>
-            </div>
-          </div>
-        </div>
-      `)
-    }
-  })
-}
-
-// DELETE_TODO
-function remove (id) {
-  $.ajax({
-    url: `http://localhost:3000/api/todo/${id}`,
+    url: `http://localhost:3000/api/user/${username}`,
     type: 'DELETE',
     success: function (data) {
-      $(`#complete-${id}`).remove()
-      $(`#uncomplete-${id}`).remove()
+      $(`#${username}`).remove()
+    }
+  })
+}
+
+function addSkill (username) {
+  $.ajax({
+    url: `http://localhost:3000/api/${username}/skill`,
+    type: 'PUT',
+    data: {
+      name: $('#skill').val(),
+      score: $('#score').val()
+    },
+    success: function (data) {
+      let skillname = $('#skill').val()
+      let score = $('#score').val()
+      $(`#${data.username}-skill`).prepend(`
+        <tr id="${data.username}-${skillname}">
+          <td>${skillname}</td>
+          <td>${score}</td>
+          <td><a onclick="removeSkill('${data.username}','${skillname}')" class="waves-effect waves-light btn red"><i class="material-icons center"><i class="material-icons">delete_forever</i></i></a></td>
+        </tr>
+      `)
+    }
+  })
+}
+
+function removeSkill (username, skill) {
+  $.ajax({
+    url: `http://localhost:3000/api/users/${username}/removeskill`,
+    type: 'PUT',
+    data: {
+      name: skill
+    },
+    success: function (data) {
+      $(`#${data.username}-${skill}`).remove()
     }
   })
 }
